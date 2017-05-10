@@ -1,0 +1,31 @@
+\documentclass[12pt]{article}
+
+\begin{document}
+\title{I.O.Stu Specification}
+\author{Stuart Reilly}
+\maketitle
+\newpage
+
+\section{Introduction}
+    This is the specification document for the I.O.Stu platform.
+    The I.O.Stu platform is a centralised technique for users to request, repay and access information about their I.O.Stu.
+    An I.O.Stu is a small, normally short-term, loan with minimal intrest from Stu.
+    Previously, I.O.Stu's were only avalible through direct contact with Stu, with a large amount of manual work for Stu to monitor all the outstanding I.O.Stus.
+
+\section{API}
+    The I.O.Stu platfrom will provide a REST API over HTTPS.
+    HTTP will not be supported by any part of the platform due to its insecurity and the widespread support for HTTPS.
+    Data sent to and recieved from the API will be in the form of JSON for ease of serialision, deserialisation and human readabilty.
+
+    \subsection{Security}
+    All API endpoints will be carried out over HTTPS, with all HTTP requests returning a HTTP 308 Permanent Redirect status code, redirecting to the root HTTPS URI.
+    All API endpoints excluding authentication endpoints, must provide an API token in the Authentication header, otherwise a HTTP 401 Unauthorised status code will be returned.
+
+    \subsection{API Endpoints}
+        \subsubsection{Request New}
+        Request a new I.O.Stu.
+
+        RESOURCE: POST /request
+        HEADERS: Authorisation
+
+\end{document}

@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+
+    <title>I.O.STU</title>
+
+    <style>
+        .fade-card {
+            -webkit-transition:all 0.2s ease-in-out;
+            -o-transition:all 0.2s ease-in-out;
+            transition:all 0.2s ease-in-out
+        }
+
+        .fade-card:hover {
+            color:#fff;
+            background-color:#375a7f;
+            border-color:#375a7f
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse bg-primary">
+    <h1 class="navbar-brand">I.O.STU</h1>
+</nav>
+
+<div class="container container-fluid" style="margin-top: 6em;">
+    <div class="card-deck">
+        <div id="card-new" class="card card-outline-primary fade-card">
+            <div class="card-block">
+                <h3 class="card-title">New I.O.STU</h3>
+                <h6 class="card-subtitle mb-2 text-muted">Request an I.O.STU</h6>
+                <p class="card-text">Request a new I.O.STU to be evaluated.</p>
+            </div>
+        </div>
+        <div id="card-curr" class="card card-outline-primary fade-card">
+            <div class="card-block">
+                <h3 class="card-title">Current I.O.STU</h3>
+                <h6 class="card-subtitle mb-2 text-muted text-left">Request I.O.STU update</h6>
+                <p class="card-text">Request an update about a current I.O.STU.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-new" tabindex="-1" role="dialog" aria-labelledby="New I.O.STU" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">New I.O.STU</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-new" action="mailto:stu@reilly-family.co.uk" method="post" enctype="text/plain">
+                    <div class="form-group">
+                        <label for="form-name-new">Name</label>
+                        <input type="text" class="form-control" id="form-name-new" placeholder="Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-email-new">Email</label>
+                        <input type="email" class="form-control" id="form-email-new" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-amount-new">Amount</label>
+                        <input type="text" class="form-control" id="form-amount-new" placeholder="Amount" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="send()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery first, then Tether, then Bootstrap JS. -->
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+    $('#card-new').on('click', function(event) {
+        $('#modal-new').modal('show');
+    });
+
+    $('#card-curr').on('click', function(event) {
+        alert("Not implemented yet!")
+    });
+
+    function send() {
+        var name = $('#form-name-new').val();
+        var email = $('#form-email-new').val();
+        var amount = $('#form-amount-new').val();
+
+        $.ajax({
+            type: "POST",
+            url: "/request",
+            data: {name: name, email: email, amount: amount}
+        })/*.always(function (data, status) {
+            alert("Data: {" + data + "} status: {" + status + "} object props: {" + Object.getOwnPropertyNames(data))
+        })*/.fail(function (response) {
+            if (response.status >= 500) {
+                alert("Internal server error! Status: {" + response.status + "} Status text: {" + response.statusText + "}")
+            } else {
+                alert(response.responseText)
+            }
+        }).done(function () {
+            alert("You request for an I.O.Stu has been sent. Please await further communication via email.");
+            $('#modal-new').modal('hide');
+        });
+        /*$.post("/request", {name: name, email: email, amount: amount}, function (data, status) {
+            alert("Data: {" + data + "} status: {" + status + "}")
+        }, "text")*/
+    }
+
+    $('#modal-new').on('hidden.bs.modal', function (event) {
+        var nameObj = $('#form-name-new');
+        var emailObj = $('#form-email-new');
+        var amountObj = $('#form-amount-new');
+
+        nameObj.val(nameObj.defaultValue);
+        emailObj.val(emailObj.defaultValue);
+        amountObj.val(amountObj.defaultValue);
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+logger_config = "logger.toml"
+
+[ssl]
+identity = "identity.p12"
+pass = "mypass"
+
+[server]
+ip = "127.0.0.1"
+port = 3000
