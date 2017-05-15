@@ -1,0 +1,1 @@
+infer_schema!("postgres://stuart@localhost/iostu");

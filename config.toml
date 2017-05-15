@@ -5,5 +5,18 @@ identity = "identity.p12"
 pass = "mypass"
 
 [server]
-ip = "127.0.0.1"
+ip = "localhost"
 port = 3000
+
+#[postgresql.pool]
+#pool_size = 10
+#min_idle = 10
+#helper_threads = 3
+#test_on_check_out = true
+#init_fail_fast = true
+#idle_timeout = 600
+#max_lifetime = 1800
+#connection_timeout = 30
+
+[postgresql]
+url = "postgres://stuart@localhost/iostu"

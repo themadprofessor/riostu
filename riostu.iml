@@ -12,6 +12,10 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Rust &lt;riostu&gt;" level="project" />
+    <orderEntry type="library" name="firebase" level="application" />
+    <orderEntry type="library" name="firebase-app" level="application" />
+    <orderEntry type="library" name="firebase-auth" level="application" />
+    <orderEntry type="library" name="firebaseui" level="application" />
     <orderEntry type="library" name="Cargo &lt;riostu&gt;" level="project" />
   </component>
 </module>

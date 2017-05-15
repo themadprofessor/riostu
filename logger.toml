@@ -3,3 +3,9 @@ type = "term"
 color = "true"
 format = "full"
 timestamp = "utc"
+
+#[output.stderr]
+#type = "term"
+#color = "true"
+#format = "full"
+#timestamp = "utc"

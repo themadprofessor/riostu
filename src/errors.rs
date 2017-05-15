@@ -5,7 +5,9 @@ error_chain! {
         HTTP(::iron::error::HttpError);
         IO(::std::io::Error);
         RequestBody(::urlencoded::UrlDecodingError);
-        Currency(::currency::ParseCurrencyError);
+        PoolInitialisation(::r2d2::InitializationError);
+        PoolTimeout(::r2d2::GetTimeout);
+        Diesel(::diesel::result::Error);
     }
 
     errors {
@@ -54,6 +56,19 @@ error_chain! {
 
         BadRequest {
             description("Your request was invalid!")
+        }
+
+        DieselMiddleware(err: String) {
+            description("Failed to start database connection!")
+            display("A connection to the database could not be established! {}", err)
+        }
+
+        AmountParse {
+            description("Invalid amount given!")
+        }
+
+        MissingDatabaseConnection {
+            description("No connection to the database found!")
         }
     }
 }

@@ -4,22 +4,23 @@ version = "0.1.0"
 authors = ["Stuart <stu@reilly-family.co.uk>"]
 
 [dependencies]
-slog = "2"
-slog-term = "2.0.0"
-slog-async = "2.0.1"
+slog = { version = "*", features = ["max_level_debug"] }
+slog-term = "*"
+slog-async = "*"
 slog-perf = "*"
 slog-config = "*"
 iron = "*"
 staticfile = "*"
 mount = "*"
 urlencoded = "*"
-hyper-native-tls = "0.2.2"
-config = "0.4"
+hyper-native-tls = "*"
+hyper = "*"
+config = "*"
 error-chain = "*"
-diesel = { version = "0.11.0", features = ["postgres"] }
-diesel_codegen = { version = "0.11.0", features = ["postgres"] }
-dotenv = "0.8.0"
+diesel = { version = "*", features = ["postgres"] }
+diesel_codegen = { version = "*", features = ["postgres"] }
 bodyparser = "*"
 serde = "*"
 serde_derive = "*"
-currency = "0.4.0"
+r2d2 = "*"
+r2d2-diesel = "*"
