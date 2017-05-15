@@ -60,7 +60,9 @@ fn main() {
 
     match build_ssl(&config).and_then(|ssl| {
         let mut mount = Mount::new();
-        mount.mount("/", Static::new("web/")).mount("/request", request::RequestHandler{});
+        mount.mount("/", Static::new("web/"))
+            .mount("/request", request::RequestHandler{})
+            .mount("/new/auth", auth::AuthHandler{});
         let mut chain = Chain::new(mount);
         chain.link_before(providers::LogProvider::new(log.new(o!())))
             .link_before(providers::MonitoringProvider {});

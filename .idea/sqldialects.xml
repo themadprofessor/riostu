@@ -2,5 +2,6 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/migrations/20170510121831_create_requests/up.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/migrations/20170515112806_create_users/up.sql" dialect="PostgreSQL" />
   </component>
 </project>
