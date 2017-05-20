@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<!--
+	Identity by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>IOStu</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+
+        <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.9.0/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.9.0/firebase-auth.js"></script>
+
+		<script src="https://cdn.firebase.com/libs/firebaseui/1.0.1/firebaseui.js"></script>
+		<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/1.0.1/firebaseui.css" />
+
+		<script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "AIzaSyA4MYcZtmytZ3FfqdJW3Jfg9HRDykJK9dI",
+                authDomain: "iostu-165217.firebaseapp.com",
+                databaseURL: "https://iostu-165217.firebaseio.com",
+                projectId: "iostu-165217",
+                storageBucket: "iostu-165217.appspot.com",
+                messagingSenderId: "748001161761"
+            };
+            firebase.initializeApp(config);
+		</script>
+
+		<!--<script type="text/javascript">
+            // FirebaseUI config.
+            var uiConfig = {
+                signInSuccessUrl: '/new/auth',
+                /*callbacks: {
+                    signInSuccess: function (currentUser, creds, redirect) {
+                        alert(JSON.stringify(creds))
+                    }
+                },*/
+                signInOptions: [
+                    // Leave the lines as is for the providers you want to offer your users.
+                    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+                    //firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+                    //firebase.auth.GithubAuthProvider.PROVIDER_ID,
+                    //firebase.auth.EmailAuthProvider.PROVIDER_ID
+                ],
+                // Terms of service url.
+                tosUrl: '<your-tos-url>',
+				signInFlow: 'popup'
+            };
+
+            // Initialize the FirebaseUI Widget using Firebase.
+            var ui = new firebaseui.auth.AuthUI(firebase.auth());
+            // The start method will wait until the DOM is loaded.
+            ui.start('#firebaseui-auth-container', uiConfig);
+		</script>-->
+	</head>
+	<body class="is-loading">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<section id="main">
+						<header>
+							<span class="avatar"><img src="images/avatar.jpg" alt="" /></span>
+							<h1>IOStu</h1>
+							<p>Your friendly-neighbourhood loan shark</p>
+						</header>
+						<!--
+						<hr />
+						<h2>Extra Stuff!</h2>
+						<form method="post" action="#">
+							<div class="field">
+								<input type="text" name="name" id="name" placeholder="Name" />
+							</div>
+							<div class="field">
+								<input type="email" name="email" id="email" placeholder="Email" />
+							</div>
+							<div class="field">
+								<div class="select-wrapper">
+									<select name="department" id="department">
+										<option value="">Department</option>
+										<option value="sales">Sales</option>
+										<option value="tech">Tech Support</option>
+										<option value="null">/dev/null</option>
+									</select>
+								</div>
+							</div>
+							<div class="field">
+								<textarea name="message" id="message" placeholder="Message" rows="4"></textarea>
+							</div>
+							<div class="field">
+								<input type="checkbox" id="human" name="human" /><label for="human">I'm a human</label>
+							</div>
+							<div class="field">
+								<label>But are you a robot?</label>
+								<input type="radio" id="robot_yes" name="robot" /><label for="robot_yes">Yes</label>
+								<input type="radio" id="robot_no" name="robot" /><label for="robot_no">No</label>
+							</div>
+							<ul class="actions">
+								<li><a href="#" class="button">Get Started</a></li>
+							</ul>
+						</form>
+						<hr />
+						-->
+						<footer>
+							<ul class="icons">
+                                <li><button onclick="login()">Login with Google</button></li>
+                                <!--<li><div id="firebaseui-auth-container"></div></li>-->
+								<!--<li><a href="#" class="fa-twitter">Twitter</a></li>
+								<li><a href="#" class="fa-instagram">Instagram</a></li>
+								<li><a href="#" class="fa-facebook">Facebook</a></li>-->
+							</ul>
+						</footer>
+					</section>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<ul class="copyright">
+							<li>&copy; Stuart Reilly</li><li>Design: <a href="http://html5up.net">HTML5 UP</a> - Stunning designs btw</li>
+						</ul>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<!--[if lte IE 8]><script src="assets/js/respond.min.js"></script><![endif]-->
+			<script>
+				if ('addEventListener' in window) {
+					window.addEventListener('load', function() { document.body.className = document.body.className.replace(/\bis-loading\b/, ''); });
+					document.body.className += (navigator.userAgent.match(/(MSIE|rv:11\.0)/) ? ' is-ie' : '');
+				}
+
+				function login() {
+				    var provider = new firebase.auth.GoogleAuthProvider();
+                    firebase.auth().signInWithPopup(provider).then(function (result) {
+                        alert(JSON.stringify(result.credential));
+                        $.ajax({
+                            type: 'post',
+                            url: 'auth',
+                            data: JSON.stringify({
+                                user : {
+                                    id: result.user.uid,
+                                    name: result.user.displayName,
+                                    email: result.user.email
+                                },
+								jwt: result.credential.idToken
+                            })
+                        }).fail(function (response) {
+                            if (response.status === 500) {
+                                alert("Internal Server Error! " + response.responseText)
+                            } else if (response.status === 400) {
+                                alert("Incorrect data from Google! Please try again!\nInfo: " + response.responseText)
+                            } else {
+                                alert("Unknown error: " + response.responseText)
+                            }
+                        }).done(function () {
+                            alert("Whoop")
+                        })
+                    }).catch(function (error) {
+                        alert("Fuck: " + error)
+                    });
+                }
+			</script>
+        <script src="../js/jquery-3.2.1.min.js"></script>
+
+	</body>
+</html>
