@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Stuart <stu@reilly-family.co.uk>"]
 
 [dependencies]
-slog = { version = "*", features = ["max_level_debug"] }
+slog = { version = "*", features = ["max_level_trace"] }
 slog-term = "*"
 slog-async = "*"
 slog-perf = "*"
@@ -17,10 +17,13 @@ hyper-native-tls = "*"
 hyper = "*"
 config = "*"
 error-chain = "*"
-diesel = { version = "*", features = ["postgres"] }
-diesel_codegen = { version = "*", features = ["postgres"] }
 bodyparser = "*"
 serde = "*"
 serde_derive = "*"
+serde_json = "*"
 r2d2 = "*"
-r2d2-diesel = "*"
+r2d2_postgres = "*"
+postgres = "*"
+base64 = "*"
+jsonwebtoken = "*"
+chrono = { version = "*", features = ["serde"] }

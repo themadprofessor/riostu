@@ -3,14 +3,10 @@ use iron::Handler;
 use iron::method::Method;
 use iron::status;
 use urlencoded::{QueryResult, QueryMap, UrlEncodedBody};
-use diesel::pg::data_types::Cents;
-use diesel::prelude::*;
-use diesel;
 
 use errors::*;
-use models::NewRequest;
-use schema::requests;
 use providers::DatabaseProvider;
+use models::NewRequest;
 
 pub struct RequestHandler;
 
@@ -54,15 +50,13 @@ impl Handler for RequestHandler {
                 .ok_or_else(|| Error::from(ErrorKind::MissingDatabaseConnection))
                 .and_then(|con| con.get().map_err(|err| Error::from(ErrorKind::PoolTimeout(err))))
                 .chain_err(|| ErrorKind::InternalServerError)
-                .and_then(|con| diesel::insert(&request)
-                    .into(requests::table)
-                    .get_result(&*con)
-                    .map_err(|err| Error::from(ErrorKind::Diesel(err))).chain_err(|| ErrorKind::InternalServerError)))
+                .and_then(|con| con.execute("INSERT INTO request (user_id, amount) VALUES ($1, $2);", &[&request.user_id, &request.amount])
+                    .map_err(|err| Error::from(ErrorKind::Postgres(err))).chain_err(|| ErrorKind::InternalServerError)))
             //.chain_error(|err| ErrorKind::InternalServerError)
             .map_err(|err| IronError {
                 error: Box::new(Error::from(err)),
                 response: Response::with((status::ImATeapot, "Teapot"))
-            }).map(|_: ::models::Request| Response::with(status::Ok))
+            }).map(|_| Response::with(status::Ok))
     }
 }
 

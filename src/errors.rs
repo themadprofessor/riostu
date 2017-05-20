@@ -5,9 +5,15 @@ error_chain! {
         HTTP(::iron::error::HttpError);
         IO(::std::io::Error);
         RequestBody(::urlencoded::UrlDecodingError);
+        RequestBody2(::bodyparser::BodyError);
         PoolInitialisation(::r2d2::InitializationError);
         PoolTimeout(::r2d2::GetTimeout);
-        Diesel(::diesel::result::Error);
+        PostgresConnect(::postgres::error::ConnectError);
+        Postgres(::postgres::error::Error);
+        Google(::google::error::Error);
+        Base64(::base64::DecodeError);
+        JWT(::jwt::errors::Error);
+        JSON(::serde_json::Error);
     }
 
     errors {
@@ -69,6 +75,28 @@ error_chain! {
 
         MissingDatabaseConnection {
             description("No connection to the database found!")
+        }
+
+        MissingKidGoogleToken {
+            description("No kid entry in Google's JWT header!")
+        }
+
+        NoValidKeyGoogle {
+            description("No matching key for Google's JWT!")
+        }
+
+        FailedGetGoogleKeys {
+            description("Failed to get Googles's JWT keys!")
+        }
+
+        ClientTLS(msg: String) {
+            description("Failed to start TLS client!")
+            display("Failed to start TLS client! {}", msg)
+        }
+
+        Poison(msg: String, obj: String) {
+            description("Read Write Lock was poisoned!")
+            display("The Read Write Lock for {} was poisoned! {}", obj, msg)
         }
     }
 }
