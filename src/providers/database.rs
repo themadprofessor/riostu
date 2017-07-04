@@ -4,7 +4,6 @@ use r2d2::{Config, Pool};
 use r2d2_postgres::{TlsMode, PostgresConnectionManager};
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use errors::*;
 

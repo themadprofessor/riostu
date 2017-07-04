@@ -27,7 +27,7 @@ impl NewRequest {
                     .and_then(|mut amount| match amount.len() {
                         1 => Ok(amount.remove(0)),
                         _ => Err(ErrorKind::IncorrectCountRequestData("amount".to_string(), 1))
-                    }).map_err(Error::from).and_then(|amount| build_currency(amount));
+                    }).map_err(Error::from).and_then(|cur| build_currency(&cur));
 
                 user_id_res.and_then(|user_id| amount_res.and_then(|amount|
                     Ok(NewRequest{
@@ -60,6 +60,6 @@ impl Handler for RequestHandler {
     }
 }
 
-fn build_currency(s: String) -> Result<i32> {
-    s.parse::<f32>().map(|num| (num * 100 as f32) as i32).map_err(|err| Error::from(ErrorKind::AmountParse))
+fn build_currency(s: &str) -> Result<i32> {
+    s.parse::<f32>().map(|num| (num * 100 as f32) as i32).map_err(|_| Error::from(ErrorKind::AmountParse))
 }

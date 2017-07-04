@@ -42,11 +42,6 @@ error_chain! {
             display("The {} data is missing from your request!", data)
         }
 
-        IncorrectRequestData(data: String) {
-            description("Some of your request's data is incorrect!")
-            display("The {} is incorrect in your request!", data)
-        }
-
         IncorrectCountRequestData(data: String, count: usize) {
             description("Your request has an incorrect amount of some data!")
             display("There can on be {} of the {} data!", count, data)
@@ -64,11 +59,6 @@ error_chain! {
             description("Your request was invalid!")
         }
 
-        DieselMiddleware(err: String) {
-            description("Failed to start database connection!")
-            display("A connection to the database could not be established! {}", err)
-        }
-
         AmountParse {
             description("Invalid amount given!")
         }
@@ -83,10 +73,6 @@ error_chain! {
 
         NoValidKeyGoogle {
             description("No matching key for Google's JWT!")
-        }
-
-        FailedGetGoogleKeys {
-            description("Failed to get Googles's JWT keys!")
         }
 
         ClientTLS(msg: String) {

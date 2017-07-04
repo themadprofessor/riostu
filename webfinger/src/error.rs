@@ -1,8 +1,6 @@
-
 error_chain! {
     foreign_links {
-        Hyper(::hyper::error::Error);
+        URL(::hyper::error::ParseError);
         JSON(::serde_json::Error);
-        IO(::std::io::Error);
     }
 }

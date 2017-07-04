@@ -1,4 +1,3 @@
-use std::mem::replace;
 use std::io::Read;
 
 use hyper::{header, Client};
@@ -46,8 +45,8 @@ impl CachedKeys {
                         expiry: UTC::now() +
                             Duration::seconds(response.headers.get::<header::CacheControl>()
                                 .and_then(|control| control.iter()
-                                    .filter_map(|cache_opt| match cache_opt {
-                                        &header::CacheDirective::MaxAge(age) => Some(age as i64),
+                                    .filter_map(|cache_opt| match *cache_opt {
+                                        header::CacheDirective::MaxAge(age) => Some(age as i64),
                                         _ => None
                                     }).next()
                                 ).unwrap_or_else(|| 0))
@@ -59,10 +58,19 @@ impl CachedKeys {
         serde_json::from_reader(read).map_err(|err| ErrorKind::JSON(err).into())
     }
 
+    pub fn refresh(&mut self, client: &Client, discovery: &Discovery) -> Result<()> {
+        CachedKeys::new(client, discovery).map(move |keys| {
+            self.keys = keys.keys;
+            self.expiry = keys.expiry;
+            ()
+        })
+    }
+
     pub fn keys(&mut self, client: &Client, discovery: &Discovery) -> Result<&Vec<Key>> {
         if self.is_expired() {
             CachedKeys::new(client, discovery).map(move |keys| {
                 self.keys = keys.keys;
+                self.expiry = keys.expiry;
                 &self.keys
             })
         } else {

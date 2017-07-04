@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="Rust &lt;riostu&gt;">
+  <library name="Rust &lt;webfinger&gt;">
     <CLASSES>
       <root url="file://$USER_HOME$/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd" />
       <root url="file://$USER_HOME$/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore" />

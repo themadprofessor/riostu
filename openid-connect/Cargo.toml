@@ -1,0 +1,15 @@
+[package]
+name = "openid_connect"
+version = "0.1.0"
+authors = ["Stuart Reilly <stu@reilly-family.co.uk>"]
+
+[dependencies]
+hyper = "0.10"
+hyper-native-tls = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+serde_urlencoded = "*"
+error-chain = "*"
+rand = "*"
+base64 = "*"

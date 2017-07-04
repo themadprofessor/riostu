@@ -20,6 +20,7 @@
     \subsection{Security}
     All API endpoints will be carried out over HTTPS, with all HTTP requests returning a HTTP 308 Permanent Redirect status code, redirecting to the root HTTPS URI.
     All API endpoints excluding authentication endpoints, must provide an API token in the Authentication header, otherwise a HTTP 401 Unauthorised status code will be returned.
+    
 
     \subsection{API Endpoints}
         \subsubsection{Request New}
@@ -29,3 +30,8 @@
         HEADERS: Authorisation
 
 \end{document}
+
+
+#JWT in header for all requests, including login
+#Checked by AuthProvider for all requests, return Unauth if bad
+#When login, put user data in body as json

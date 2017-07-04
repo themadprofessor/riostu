@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::error::Error;
 
 use iron::prelude::*;
 use iron::{AfterMiddleware, status};
@@ -13,7 +14,7 @@ impl AfterMiddleware for ErrorCapture {
     fn catch(&self, req: &mut Request, err: IronError) -> IronResult<Response> {
         let info = err.error.cause().map(|e| format!("{}", e)).unwrap_or_else(|| format!("{}", err.error));
         if let Some(log) = req.extensions.get::<LogProvider>() {
-            warn!(log, "Error produced by {} endpoint! {}", req.url, info);
+            warn!(log, "Error during handling"; "url" => req.url.as_ref().as_str(), "desc" => err.description());
             trace!(log, "{:?}", err)
         }
         Ok(match err.error.deref().downcast::<::errors::Error>().map(|e| e.deref()) {

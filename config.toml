@@ -8,6 +8,7 @@ pass = "mypass"
 ip = "localhost"
 port = 3000
 
+#TODO: Fix r2d2 init to use this
 #[postgresql.pool]
 #pool_size = 10
 #min_idle = 10

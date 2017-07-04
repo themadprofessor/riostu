@@ -27,12 +27,12 @@ extern crate jsonwebtoken as jwt;
 use std::fs;
 use std::io;
 use std::io::{Write, Read};
+use std::collections::HashSet;
 
 use iron::prelude::*;
 use mount::Mount;
 use staticfile::Static;
 use hyper_native_tls::{NativeTlsClient, NativeTlsServer};
-use hyper::server::{Server, Request, Response};
 use hyper::client::Client;
 use hyper::net::HttpsConnector;
 use config::{Config, File, FileFormat};
@@ -63,28 +63,32 @@ fn main() {
         }
     };
 
+    let mut paths = HashSet::new();
+    paths.insert("/auth".to_string());
+    paths.shrink_to_fit();
 
-    match build_ssl(&config).and_then(|ssl| NativeTlsClient::new()
-        .map_err(|err| ErrorKind::ClientTLS(format!("{}", err)))
-        .map(|tls| Client::with_connector(HttpsConnector::new(tls)))
-        .and_then(|client| login::LoginHandler::new(client).map_err(ErrorKind::from))
-        .map_err(Error::from)
-        .and_then(|login| {
-            let mut mount = Mount::new();
-            mount.mount("/", Static::new("web/"))
-                .mount("/request", request::RequestHandler{})
-                .mount("/new/auth", login);
-            let mut chain = Chain::new(mount);
-            chain.link_before(providers::LogProvider::new(log.new(o!())))
-                .link_before(providers::MonitoringProvider {});
-            chain.link_after(providers::MonitoringProvider {})
-                .link_after(providers::ErrorCapture{});
-            providers::DatabaseProvider::new(&config).and_then(|diesel| {
-                chain.link_before(diesel);
-                build_iron(&config, chain, ssl)
+    match build_ssl(&config)
+        .and_then(|ssl| NativeTlsClient::new()
+            .map_err(|err| Error::from(ErrorKind::ClientTLS(format!("{}", err))))
+            .map(|tls| Client::with_connector(HttpsConnector::new(tls)))
+            .and_then(|client| providers::AuthProvider::new(client, paths))
+            .and_then(|auth| {
+                let mut mount = Mount::new();
+                mount.mount("/", Static::new("web/"))
+                    .mount("/request", request::RequestHandler{})
+                    .mount("/login", login::LoginHandler::new());
+                let mut chain = Chain::new(mount);
+                chain.link_before(providers::LogProvider::new(log.new(o!())))
+                    .link_before(providers::MonitoringProvider {})
+                    .link_before(auth);
+                chain.link_after(providers::MonitoringProvider {})
+                    .link_after(providers::ErrorCapture{});
+                providers::DatabaseProvider::new(&config).and_then(|diesel| {
+                    chain.link_before(diesel);
+                    build_iron(&config, chain, ssl)
+                })
             })
-        })
-    ) {
+        ) {
         Ok(_) => info!(log, "Successfully started the server"),
         Err(err) => error!(log, "Failed to start server! {}", err)
     }
