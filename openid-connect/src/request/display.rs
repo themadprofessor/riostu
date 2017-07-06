@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::fmt;
 use std::str::FromStr;
 use std::default::Default;
@@ -19,22 +18,20 @@ pub enum Display {
     Wap
 }
 
-impl Deref for Display {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<str> for Display {
+    fn as_ref(&self) -> &str {
         match *self {
             Display::Page => "page",
-            Display::Popup => "popup",
             Display::Touch => "touch",
-            Display::Wap => "wap",
+            Display::Popup => "popup",
+            Display::Wap => "wap"
         }
     }
 }
 
 impl fmt::Display for Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self)
+        f.write_str(self.as_ref())
     }
 }
 

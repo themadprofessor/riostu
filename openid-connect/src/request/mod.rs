@@ -6,6 +6,7 @@ use hyper::client::IntoUrl;
 use rand::{self, Rng};
 use base64;
 use serde_urlencoded;
+use itertools::Itertools;
 
 mod scope;
 mod display;
@@ -210,6 +211,48 @@ impl AuthRequest {
     pub fn acr_values(&self) -> Option<&[String]> {
         self.acr_values.as_ref().map(Vec::as_ref)
     }
+
+    pub fn to_url<T>(&self, base: T) -> Result<Url> where T: IntoUrl {
+        let mut url = base.into_url().map_err(|err| Error::from(ErrorKind::URL(err)))?;
+        {
+            let mut pairs = url.query_pairs_mut();
+
+            pairs.append_pair("response_type", self.response_type.as_ref())
+                .append_pair("scope", self.scope.iter()
+                    .map(AsRef::as_ref)
+                    .chain(::std::iter::once("openid"))
+                    .join("%20")
+                    .as_ref())
+                .append_pair("client_id", self.client_id.as_ref())
+                .append_pair("redirect_uri", self.redirect_uri.as_ref())
+                .append_pair("state", encode(&self.state).as_ref());
+            if let Some(nonce) = self.nonce.as_ref() {
+                pairs.append_pair("nonce", encode(nonce).as_ref());
+            }
+            if let Some(prompt) = self.prompt.as_ref() {
+                pairs.append_pair("prompt", prompt.as_ref());
+            }
+            if let Some(max_age) = self.max_age.as_ref() {
+                pairs.append_pair("max_age", max_age.to_string().as_ref());
+            }
+            if let Some(ui_locales) = self.ui_locales.as_ref() {
+                let s = ui_locales.iter().join("%20");
+                pairs.append_pair("ui_locales", encode(&s).as_ref());
+            }
+            if let Some(id_token_hint) = self.id_token_hint.as_ref() {
+                pairs.append_pair("id_token_hint", encode(id_token_hint).as_ref());
+            }
+            if let Some(login_hint) = self.login_hint.as_ref() {
+                pairs.append_pair("login_hint", encode(login_hint).as_ref());
+            }
+            if let Some(acr_values) = self.acr_values.as_ref() {
+                let s = acr_values.iter().join("%20");
+                pairs.append_pair("acr_values", encode(&s).as_ref());
+            }
+        }
+
+        Ok(url)
+    }
 }
 
 impl fmt::Display for AuthRequest {
@@ -219,14 +262,21 @@ impl fmt::Display for AuthRequest {
     }
 }
 
+#[inline]
 fn gen_hash() -> ::std::result::Result<String, ErrorKind> {
     rand::OsRng::new().map(|mut rng| {
         base64::encode_config(&rng.gen_iter::<u8>().take(30).collect::<Vec<u8>>(), base64::URL_SAFE)
     }).map_err(ErrorKind::IO)
 }
 
+#[inline]
 fn ser_url<T>(me: &Url, ser: T) -> ::std::result::Result<T::Ok, T::Error> where T: ::serde::Serializer {
     ser.serialize_str(me.as_str())
+}
+
+#[inline]
+fn encode<T>(data: &T) -> String where T: AsRef<[u8]> {
+    base64::encode_config(data, base64::URL_SAFE)
 }
 
 #[cfg(test)]
@@ -235,12 +285,10 @@ mod tests {
 
     #[test]
     fn test_display() {
-        println!("{}", Builder::new(vec![Scope::Profile],
-                                    "id".to_string(),
-                                    "http://localhost",
-                                    "code".to_string(),
-                                    gen_hash().unwrap())
-            .unwrap()
-            .build());
+        println!("{}", AuthRequest::new(vec![Scope::Profile],
+                                        "id".to_string(),
+                                        "http://127.0.0.1",
+                                        ResponseType::Code,
+                                        None).unwrap().to_url("http://127.0.0.1").unwrap());
     }
 }

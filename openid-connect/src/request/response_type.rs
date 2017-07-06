@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -19,7 +18,7 @@ pub enum ResponseType {
 
 impl Display for ResponseType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self)
+        f.write_str(self.as_ref())
     }
 }
 
@@ -43,7 +42,7 @@ impl FromStr for ResponseType {
     /// ```rust
     /// # use std::str::FromStr;
     /// # use ::openid_connect::request::ResponseType;
-    /// assert!(ResponseType::from_str("Nice response").is_err);
+    /// assert!(ResponseType::from_str("Nice response").is_err());
     ///
     /// assert_eq!(ResponseType::from_str("code").unwrap(), ResponseType::Code);
     /// assert_eq!(ResponseType::from_str("token").unwrap(), ResponseType::Token);

@@ -7,5 +7,6 @@ extern crate serde_json;
 extern crate serde_urlencoded;
 extern crate rand;
 extern crate base64;
+extern crate itertools;
 
 pub mod request;

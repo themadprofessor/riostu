@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -20,19 +19,17 @@ pub enum Scope {
 
 impl Display for Scope {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self)
+        f.write_str(self.as_ref())
     }
 }
 
-impl Deref for Scope {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<str> for Scope {
+    fn as_ref(&self) -> &str {
         match *self {
             Scope::Profile => "profile",
-            Scope::Email => "email",
-            Scope::Address => "address",
             Scope::Phone => "phone",
+            Scope::Address => "address",
+            Scope::Email => "email",
             Scope::Ext(ref s) => s
         }
     }

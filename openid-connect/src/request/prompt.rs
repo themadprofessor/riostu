@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -20,10 +19,8 @@ pub enum Prompt {
     SelectAccount
 }
 
-impl Deref for Prompt {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<str> for Prompt {
+    fn as_ref(&self) -> &str {
         match *self {
             Prompt::None => "none",
             Prompt::Login => "login",
@@ -35,7 +32,7 @@ impl Deref for Prompt {
 
 impl Display for Prompt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self)
+        f.write_str(self.as_ref())
     }
 }
 
