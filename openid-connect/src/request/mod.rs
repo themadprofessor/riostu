@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::fmt;
+use std::borrow::Cow;
 
 use hyper::Url;
 use hyper::client::IntoUrl;
@@ -38,28 +39,32 @@ pub struct AuthRequest {
 }
 
 impl AuthRequest {
-    pub fn new<A, B, C, S, T, U, V, W>(scopes: C, client_id: T, redirect_uri: V, response_type: U, state: W) -> Result<AuthRequest> where
-        S: Into<ResponseType>,
+    pub fn new<A, B, C, T, V>(scopes: C, client_id: T, redirect_uri: V) -> Result<AuthRequest> where
         T: Into<String>,
-        U: Into<Option<S>>,
         V: IntoUrl,
-        W: Into<Option<String>>,
+        A: Into<Scope>,
+        B: Iterator<Item=A>,
+        C: IntoIterator<Item=A, IntoIter=B> {
+
+        AuthRequest::with_state(scopes, client_id, redirect_uri, gen_hash()?)
+    }
+
+    pub fn with_state<A, B, C, S, T, V>(scopes: C, client_id: T, redirect_uri: V, state: S) -> Result<AuthRequest> where
+        S: Into<String>,
+        T: Into<String>,
+        V: IntoUrl,
         A: Into<Scope>,
         B: Iterator<Item=A>,
         C: IntoIterator<Item=A, IntoIter=B> {
 
         let uri = redirect_uri.into_url().map_err(|err| Error::from(ErrorKind::URL(err)))?;
-        let tmp_state = match state.into() {
-            Some(s) => Ok(s),
-            None => gen_hash()
-        }.map_err(Error::from)?;
 
         Ok(AuthRequest {
             scope: scopes.into_iter().map(Into::into).collect::<HashSet<Scope>>(),
-            response_type: response_type.into().map(Into::into).unwrap_or_default(),
+            response_type: ResponseType::default(),
             client_id: client_id.into(),
             redirect_uri: uri,
-            state: tmp_state,
+            state: state.into(),
             nonce: None,
             prompt: None,
             max_age: None,
@@ -67,7 +72,6 @@ impl AuthRequest {
             id_token_hint: None,
             login_hint: None,
             acr_values: None
-
         })
     }
 
@@ -76,11 +80,19 @@ impl AuthRequest {
         self
     }
 
-    pub fn set_scopes<I, T, S> (&mut self, scopes: T) -> &mut Self where S: Into<Scope>,
+    pub fn add_scopes<I, T, S> (&mut self, scopes: T) -> &mut Self where S: Into<Scope>,
                                                                   I: Iterator<Item=S>,
                                                                   T: IntoIterator<Item=S, IntoIter=I> {
         self.scope.extend(scopes.into_iter().map(Into::into));
         self
+    }
+
+    pub fn set_scopes<I, T, S>(&mut self, scopes: T) -> &mut Self where S: Into<Scope>,
+                                                                        I: Iterator<Item=S>,
+                                                                        T: IntoIterator<Item=S, IntoIter=I> {
+        self.scope = scopes.into_iter().map(Into::into).collect::<HashSet<Scope>>();
+        self
+
     }
 
     pub fn set_response_type<T>(&mut self, response: T) -> &mut Self where T: Into<ResponseType> {
@@ -156,7 +168,7 @@ impl AuthRequest {
         self
     }
 
-    pub fn set_acr_values<T, S, U>(&mut self, values: T) -> &mut Self where S: Into<String>,
+    pub fn add_acr_values<T, S, U>(&mut self, values: T) -> &mut Self where S: Into<String>,
                                                                      U: Iterator<Item=S>,
                                                                      T: IntoIterator<Item=S, IntoIter=U> {
         match self.acr_values {
@@ -165,6 +177,15 @@ impl AuthRequest {
                 .map(Into::into)
                 .collect::<Vec<String>>())
         };
+        self
+    }
+
+    pub fn set_acr_values<T, S, U>(&mut self, values: T) -> &mut Self where S: Into<String>,
+                                                                            U: Iterator<Item=S>,
+                                                                            T: IntoIterator<Item=S, IntoIter=U> {
+        self.acr_values = Some(values.into_iter()
+            .map(Into::into)
+            .collect::<Vec<String>>());
         self
     }
 
@@ -218,9 +239,9 @@ impl AuthRequest {
             let mut pairs = url.query_pairs_mut();
 
             pairs.append_pair("response_type", self.response_type.as_ref())
-                .append_pair("scope", self.scope.iter()
-                    .map(AsRef::as_ref)
-                    .chain(::std::iter::once("openid"))
+                .append_pair("scope", ::std::iter::once("openid")
+                    .chain(self.scope.iter()
+                        .map(AsRef::as_ref))
                     .join("%20")
                     .as_ref())
                 .append_pair("client_id", self.client_id.as_ref())
@@ -255,13 +276,6 @@ impl AuthRequest {
     }
 }
 
-impl fmt::Display for AuthRequest {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = serde_urlencoded::to_string(self).expect("AuthRequest failed url encoding");
-        write!(f, "{}", s)
-    }
-}
-
 #[inline]
 fn gen_hash() -> ::std::result::Result<String, ErrorKind> {
     rand::OsRng::new().map(|mut rng| {
@@ -284,11 +298,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_display() {
-        println!("{}", AuthRequest::new(vec![Scope::Profile],
-                                        "id".to_string(),
-                                        "http://127.0.0.1",
-                                        ResponseType::Code,
-                                        None).unwrap().to_url("http://127.0.0.1").unwrap());
+    fn test_to_url() {
+        let req = AuthRequest::with_state(vec![Scope::Profile],
+                                          "client_id",
+                                          "https://127.0.0.1/",
+                                          "TVVZNGRsVlpjWFZFUzNWb1VuVnNNVUpMUkcxRlNrMWZaM0F4YTIxQ2FUVnlhMlZaTjNwUE53PT0%3D").unwrap();
+        assert_eq!("https://google.co.uk/?response_type=code&scope=openid%2520profile&client_id=client_id&redirect_uri=https%3A%2F%2F127.0.0.1%2F&state=VFZWWk5HUnNWbHBqV0ZaRlV6TldiMVZ1Vm5OTlZVcE1Va2N4UmxOck1XWmFNMEY0WVRJeFEyRlVWbmxoTWxaYVRqTndVRTUzUFQwJTNE",
+                   req.to_url("https://google.co.uk/").unwrap().as_str());
     }
 }
