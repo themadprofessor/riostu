@@ -28,7 +28,7 @@ pub struct Link {
 #[derive(Debug, Deserialize, Clone)]
 pub struct CachedData {
     /// The date and time when this data become invalid and should be reacquired.
-    pub expire: Option<DateTime<UTC>>,
+    pub expire: Option<DateTime<Utc>>,
     pub subject: Option<String>,
     pub alias: Option<Vec<String>>,
     pub properties: Option<HashMap<String, String>>,
@@ -81,7 +81,7 @@ impl Discovery {
     /// Returns false if this discovery has expired or doesn't have an expiry, and true otherwise.
     pub fn is_expired(&self) -> bool {
         if let Some(ref expire) = self.data.expire {
-            expire <= &UTC::now()
+            expire <= &Utc::now()
         } else {
             false
         }
