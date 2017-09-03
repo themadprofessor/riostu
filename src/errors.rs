@@ -8,12 +8,12 @@ error_chain! {
         RequestBody2(::bodyparser::BodyError);
         PoolInitialisation(::r2d2::InitializationError);
         PoolTimeout(::r2d2::GetTimeout);
-        PostgresConnect(::postgres::error::ConnectError);
         Postgres(::postgres::error::Error);
         Google(::google::error::Error);
         Base64(::base64::DecodeError);
         JWT(::jwt::errors::Error);
         JSON(::serde_json::Error);
+        Config(::config::ConfigError);
     }
 
     errors {

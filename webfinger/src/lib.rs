@@ -48,10 +48,10 @@ impl Discovery {
     ///
     /// # Errors
     /// This function will return an error if the given URL is not valid.
-    pub fn new<T: hyper::client::IntoUrl>(url: T, client: &Client) {
+    pub fn new<T: hyper::client::IntoUrl>(url: T, client: &Client) -> Result<Self> {
         url.into_url()
             .and_then(|u| u.join(".well-known/webfinger"))
-            .map_err(ErrorKind::URL);
+            .map_err(|err| Error::from(ErrorKind::URL))
 
     }
 

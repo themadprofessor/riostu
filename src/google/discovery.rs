@@ -26,7 +26,7 @@ pub struct Discovery {
 #[derive(Deserialize, Debug)]
 pub struct CachedDiscovery {
     discovery: Discovery,
-    expires: DateTime<UTC>,
+    expires: DateTime<Utc>,
 }
 
 impl CachedDiscovery {
@@ -43,7 +43,7 @@ impl CachedDiscovery {
                         .map_err(ErrorKind::JSON)
                         .map(|discovery| CachedDiscovery {
                             discovery,
-                            expires: UTC::now() +
+                            expires: Utc::now() +
                                 Duration::seconds(response.headers.get::<header::CacheControl>()
                                     .and_then(|control| control.iter()
                                         .filter_map(|cache_opt| match *cache_opt {
@@ -80,6 +80,6 @@ impl CachedDiscovery {
     }
 
     pub fn is_expired(&self) -> bool {
-        UTC::now() >= self.expires
+        Utc::now() >= self.expires
     }
 }

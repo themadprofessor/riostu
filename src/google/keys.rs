@@ -2,7 +2,7 @@ use std::io::Read;
 
 use hyper::{header, Client};
 use serde_json;
-use chrono::{DateTime, UTC, Duration};
+use chrono::{DateTime, Utc, Duration};
 
 use super::error::*;
 use super::discovery::Discovery;
@@ -26,7 +26,7 @@ pub struct Key {
 #[derive(Deserialize, Debug)]
 pub struct CachedKeys {
     keys: Vec<Key>,
-    expiry: DateTime<UTC>
+    expiry: DateTime<Utc>
 }
 
 impl CachedKeys {
@@ -42,7 +42,7 @@ impl CachedKeys {
                         .map_err(ErrorKind::JSON))
                     .map(|keys| CachedKeys {
                         keys: keys.keys,
-                        expiry: UTC::now() +
+                        expiry: Utc::now() +
                             Duration::seconds(response.headers.get::<header::CacheControl>()
                                 .and_then(|control| control.iter()
                                     .filter_map(|cache_opt| match *cache_opt {
@@ -87,6 +87,6 @@ impl CachedKeys {
     }
 
     pub fn is_expired(&self) -> bool {
-        UTC::now() >= self.expiry
+        Utc::now() >= self.expiry
     }
 }

@@ -17,13 +17,20 @@ impl typemap::Key for DatabaseProvider {
 
 impl DatabaseProvider {
     pub fn new(config: &::config::Config) -> Result<DatabaseProvider> {
-        config.get_table("postgresql")
-            .ok_or_else(|| Error::from(ErrorKind::MissingConfigValue("postgresql".to_string())))
-            .and_then(|table| table.get("url")
-                .and_then(|i| i.clone().into_str())
-                .ok_or_else(|| Error::from(ErrorKind::MissingConfigValueTable("url".to_string(), "postgresql".to_string()))))
-            .and_then(|url| {
-                let r2d2_config = Config::default();
+        let postgres_table = config.get_table("postgres")
+            .map_err(|err| Error::from(ErrorKind::Config(err)))?;
+        let url = postgres_table.get("url")
+            .ok_or_else(|| Error::from(ErrorKind::MissingConfigValueTable("url".to_string(),
+                                                                          "postgresql".to_string())))
+            .and_then(|v| v.clone().into_str().map_err(|e| Error::from(ErrorKind::Config(e))))?;
+        let r2d2_config = Config::default();
+
+        let manager = PostgresConnectionManager::new(url, TlsMode::None)
+            .map_err(|err| Error::from(ErrorKind::Postgres(err)))?;
+        let pool = Pool::new(r2d2_config, manager)
+            .map_err(|err| Error::from(ErrorKind::PoolInitialisation(err)))?;
+        Ok(DatabaseProvider {pool: Arc::new(pool)})
+
                 /*let r2d2_config = config.get_table("postgresql")
                     .and_then(|table| table.get("pool")
                         .and_then(|p| p.clone().into_table()))
@@ -55,11 +62,6 @@ impl DatabaseProvider {
                                 builder.build()
                             })
                     }).unwrap_or_else(Config::default);*/
-                PostgresConnectionManager::new(url, TlsMode::None)
-                    .map_err(|err| Error::from(ErrorKind::PostgresConnect(err)))
-                    .and_then(|manager| Pool::new(r2d2_config, manager)
-                        .map_err(|err| Error::from(ErrorKind::PoolInitialisation(err))))
-            }).map(|pool| DatabaseProvider {pool: Arc::new(pool)})
     }
 }
 

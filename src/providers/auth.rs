@@ -76,7 +76,7 @@ impl BeforeMiddleware for AuthProvider {
                                         .map_err(ErrorKind::Base64)
                                         .and_then(|secret| {
                                             let mut validation = Validation::default();
-                                            validation.iss = Some("accounts.google.com");
+                                            validation.iss = Some("accounts.google.com".to_string());
                                             jwt::decode::<GoogleToken>(&user_data.jwt, &secret, &validation)
                                                 .map_err(ErrorKind::JWT)
                                         }).map(|_| ())
