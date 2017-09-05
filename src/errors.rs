@@ -14,6 +14,7 @@ error_chain! {
         JWT(::jwt::errors::Error);
         JSON(::serde_json::Error);
         Config(::config::ConfigError);
+        ClientTlsError(::hyper_native_tls::native_tls::Error);
     }
 
     errors {
@@ -75,10 +76,6 @@ error_chain! {
             description("No matching key for Google's JWT!")
         }
 
-        ClientTLS(msg: String) {
-            description("Failed to start TLS client!")
-            display("Failed to start TLS client! {}", msg)
-        }
 
         Poison(msg: String, obj: String) {
             description("Read Write Lock was poisoned!")

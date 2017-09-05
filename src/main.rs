@@ -36,7 +36,7 @@ use hyper_native_tls::{NativeTlsClient, NativeTlsServer};
 use hyper::client::Client;
 use hyper::net::HttpsConnector;
 use config::{Config, File, FileFormat};
-use slog::Drain;
+use slog::{Logger, Drain};
 
 mod request;
 mod login;
@@ -57,7 +57,7 @@ fn main() {
             std::sync::Arc::new(slog_async::Async::new(drain.fuse()).build().fuse()), o!()
         ),
         Err(err) => {
-            writeln!(io::stderr(), "Failed to create drain so will use Discard! {}", err);
+            eprintln!("Failed to create drain so will use Discard! {}", err);
             slog::Logger::root(
                 std::sync::Arc::new(slog_async::Async::new(slog::Discard).build().fuse()), o!())
         }
@@ -67,31 +67,35 @@ fn main() {
     paths.insert("/auth".to_string());
     paths.shrink_to_fit();
 
-    match build_ssl(&config)
-        .and_then(|ssl| NativeTlsClient::new()
-            .map_err(|err| Error::from(ErrorKind::ClientTLS(format!("{}", err))))
-            .map(|tls| Client::with_connector(HttpsConnector::new(tls)))
-            .and_then(|client| providers::AuthProvider::new(client, paths))
-            .and_then(|auth| {
-                let mut mount = Mount::new();
-                mount.mount("/", Static::new("web/"))
-                    .mount("/request", request::RequestHandler{})
-                    .mount("/login", login::LoginHandler::new());
-                let mut chain = Chain::new(mount);
-                chain.link_before(providers::LogProvider::new(log.new(o!())))
-                    .link_before(providers::MonitoringProvider {})
-                    .link_before(auth);
-                chain.link_after(providers::MonitoringProvider {})
-                    .link_after(providers::ErrorCapture{});
-                providers::DatabaseProvider::new(&config).and_then(|diesel| {
-                    chain.link_before(diesel);
-                    build_iron(&config, chain, ssl)
-                })
-            })
-        ) {
+    match start_server(&log, &config, paths) {
         Ok(_) => info!(log, "Successfully started the server"),
         Err(err) => error!(log, "Failed to start server! {}", err)
     }
+}
+
+fn build_auth(config: &Config, paths: HashSet<String>) -> Result<providers::AuthProvider> {
+    let client = NativeTlsClient::new().map_err(|err| Error::from(ErrorKind::ClientTlsError(err)))?;
+    let client = Client::with_connector(HttpsConnector::new(client));
+    providers::AuthProvider::new(client, paths)
+}
+
+fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result<iron::Listening> {
+    let ssl = build_ssl(&config)?;
+    let auth_provider = build_auth(&config, paths)?;
+    let db_provider = providers::DatabaseProvider::new(&config)?;
+
+    let mut mount = Mount::new();
+    mount.mount("/", Static::new("web/"))
+        .mount("/request", request::RequestHandler{})
+        .mount("/login", login::LoginHandler::new());
+    let mut chain = Chain::new(mount);
+    chain.link_before(providers::LogProvider::new(log.new(o!())))
+        .link_before(providers::MonitoringProvider {})
+        .link_before(auth_provider)
+        .link_before(db_provider);
+    chain.link_after(providers::MonitoringProvider {})
+        .link_after(providers::ErrorCapture {});
+    build_iron(&config, chain, ssl)
 }
 
 fn build_ssl(config: &Config) -> Result<NativeTlsServer> {
