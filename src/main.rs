@@ -80,9 +80,9 @@ fn build_auth(config: &Config, paths: HashSet<String>) -> Result<providers::Auth
 }
 
 fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result<iron::Listening> {
-    let ssl = build_ssl(&config)?;
-    let auth_provider = build_auth(&config, paths)?;
-    let db_provider = providers::DatabaseProvider::new(&config)?;
+    let ssl = build_ssl(config)?;
+    let auth_provider = build_auth(config, paths)?;
+    let db_provider = providers::DatabaseProvider::new(config)?;
 
     let mut mount = Mount::new();
     mount.mount("/", Static::new("web/"))
@@ -95,7 +95,7 @@ fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result
         .link_before(db_provider);
     chain.link_after(providers::MonitoringProvider {})
         .link_after(providers::ErrorCapture {});
-    build_iron(&config, chain, ssl)
+    build_iron(config, chain, ssl)
 }
 
 fn build_ssl(config: &Config) -> Result<NativeTlsServer> {

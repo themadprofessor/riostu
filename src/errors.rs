@@ -76,7 +76,6 @@ error_chain! {
             description("No matching key for Google's JWT!")
         }
 
-
         Poison(msg: String, obj: String) {
             description("Read Write Lock was poisoned!")
             display("The Read Write Lock for {} was poisoned! {}", obj, msg)

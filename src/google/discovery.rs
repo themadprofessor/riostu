@@ -47,7 +47,7 @@ impl CachedDiscovery {
                                 Duration::seconds(response.headers.get::<header::CacheControl>()
                                     .and_then(|control| control.iter()
                                         .filter_map(|cache_opt| match *cache_opt {
-                                            header::CacheDirective::MaxAge(age) => Some(age as i64),
+                                            header::CacheDirective::MaxAge(age) => Some(i64::from(age)),
                                             _ => None
                                         }).next()
                                     ).unwrap_or_else(|| 0))
