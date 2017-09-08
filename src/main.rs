@@ -103,11 +103,11 @@ fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result
 
 fn build_ssl(config: &Config) -> Result<NativeTlsServer> {
     let ssl_table = config.get_table("ssl")
-        .map_err(|err| Error::from(ErrorKind::Config(err)))?;
+        .map_err(|err| Error::from(ErrorKind::ConfigError(err)))?;
 
     let identity = ssl_table.get("identity")
-        .ok_or_else(|| ErrorKind::MissingConfigValueTable("identity".to_string(), "ssl".to_string()))
-        .and_then(|v| v.clone().into_str().map_err(ErrorKind::Config))
+        .ok_or_else(|| ErrorKind::MissingConfigValueTableError("identity".to_string(), "ssl".to_string()))
+        .and_then(|v| v.clone().into_str().map_err(ErrorKind::ConfigError))
         .map_err(Error::from)?;
 
     if !std::path::Path::new(&identity).exists() {
@@ -115,40 +115,40 @@ fn build_ssl(config: &Config) -> Result<NativeTlsServer> {
     }
 
     let pass = ssl_table.get("pass")
-        .ok_or_else(|| ErrorKind::MissingConfigValueTable("pass".to_string(), "ssl".to_string()))
-        .and_then(|v| v.clone().into_str().map_err(ErrorKind::Config))
+        .ok_or_else(|| ErrorKind::MissingConfigValueTableError("pass".to_string(), "ssl".to_string()))
+        .and_then(|v| v.clone().into_str().map_err(ErrorKind::ConfigError))
         .map_err(Error::from)?;
 
     NativeTlsServer::new(&identity, &pass)
-        .map_err(|err| Error::from(ErrorKind::TLS(err)))
+        .map_err(|err| Error::from(ErrorKind::TlsError(err)))
 }
 
 fn build_iron<H: iron::middleware::Handler>(config: &Config, handler: H, ssl: NativeTlsServer) -> Result<iron::Listening> {
     let table = config.get_table("server")
-        .map_err(|err| Error::from(ErrorKind::Config(err)))?;
+        .map_err(|err| Error::from(ErrorKind::ConfigError(err)))?;
 
     let ip = table.get("ip")
-        .ok_or_else(|| ErrorKind::MissingConfigValueTable("ip".to_string(), "server".to_string()))
-        .and_then(|v| v.clone().into_str().map_err(ErrorKind::Config))
+        .ok_or_else(|| ErrorKind::MissingConfigValueTableError("ip".to_string(), "server".to_string()))
+        .and_then(|v| v.clone().into_str().map_err(ErrorKind::ConfigError))
         .map_err(Error::from)?;
 
     let port = table.get("port")
-        .ok_or_else(|| ErrorKind::MissingConfigValueTable("port".to_string(), "server".to_string()))
-        .and_then(|v| v.clone().into_int().map_err( ErrorKind::Config))
+        .ok_or_else(|| ErrorKind::MissingConfigValueTableError("port".to_string(), "server".to_string()))
+        .and_then(|v| v.clone().into_int().map_err( ErrorKind::ConfigError))
         .map_err(Error::from)?;
 
-    Iron::new(handler).https((ip.as_ref(), port as u16), ssl).map_err(|err|Error::from(ErrorKind::HTTP(err)))
+    Iron::new(handler).https((ip.as_ref(), port as u16), ssl).map_err(|err|Error::from(ErrorKind::HttpError(err)))
 }
 
 fn build_drain(config: &Config) -> Result<slog_config::Drain> {
     let path = config.get_str("logger_config")
-        .map_err(|err| Error::from(ErrorKind::Config(err)))?;
+        .map_err(|err| Error::from(ErrorKind::ConfigError(err)))?;
     let mut file = fs::File::open(path)
-        .map_err(|err| Error::from(ErrorKind::IO(err)))?;
+        .map_err(|err| Error::from(ErrorKind::IoError(err)))?;
 
     let mut data = String::new();
     let _ = file.read_to_string(&mut data)
-        .map_err(|err| Error::from(ErrorKind::IO(err)))?;
+        .map_err(|err| Error::from(ErrorKind::IoError(err)))?;
     slog_config::from_config(&data)
-        .map_err(|err| Error::from(ErrorKind::LoggerConfig(err)))
+        .map_err(|err| Error::from(ErrorKind::LoggerConfigError(err)))
 }

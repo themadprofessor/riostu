@@ -33,14 +33,14 @@ impl CachedDiscovery {
     pub fn new(client: &Client) -> Result<CachedDiscovery> {
         client.get("https://accounts.google.com/.well-known/openid-configuration")
             .send()
-            .map_err(ErrorKind::Hyper)
+            .map_err(ErrorKind::HyperError)
             .and_then(|mut response| {
                 println!("Headers: {}", response.headers);
                 let mut s = String::new();
                 response.read_to_string(&mut s)
-                    .map_err(ErrorKind::IO)
+                    .map_err(ErrorKind::IoError)
                     .and_then(|_| serde_json::from_str::<Discovery>(&s)
-                        .map_err(ErrorKind::JSON)
+                        .map_err(ErrorKind::JsonError)
                         .map(|discovery| CachedDiscovery {
                             discovery,
                             expires: Utc::now() +
@@ -56,7 +56,7 @@ impl CachedDiscovery {
     }
 
     pub fn from_cache<T: Read>(read: T) -> Result<CachedDiscovery> {
-        serde_json::from_reader(read).map_err(|err| ErrorKind::JSON(err).into())
+        serde_json::from_reader(read).map_err(|err| ErrorKind::JsonError(err).into())
     }
 
     pub fn discovery(&mut self, client: &Client) -> Result<&Discovery> {

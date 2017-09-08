@@ -19,7 +19,7 @@ impl AfterMiddleware for ErrorCapture {
         }
         Ok(match err.error.deref().downcast::<::errors::Error>().map(|e| e.deref()) {
             Some(error) => match *error {
-                ErrorKind::BadRequest => Response::with((status::BadRequest, info)),
+                ErrorKind::BadRequestError => Response::with((status::BadRequest, info)),
                 _ => Response::with((status::InternalServerError, info))
             },
             None => {

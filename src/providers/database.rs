@@ -18,17 +18,17 @@ impl typemap::Key for DatabaseProvider {
 impl DatabaseProvider {
     pub fn new(config: &::config::Config) -> Result<DatabaseProvider> {
         let postgres_table = config.get_table("postgresql")
-            .map_err(|err| Error::from(ErrorKind::Config(err)))?;
+            .map_err(|err| Error::from(ErrorKind::ConfigError(err)))?;
         let url = postgres_table.get("url")
-            .ok_or_else(|| Error::from(ErrorKind::MissingConfigValueTable("url".to_string(),
+            .ok_or_else(|| Error::from(ErrorKind::MissingConfigValueTableError("url".to_string(),
                                                                           "postgresql".to_string())))
-            .and_then(|v| v.clone().into_str().map_err(|e| Error::from(ErrorKind::Config(e))))?;
+            .and_then(|v| v.clone().into_str().map_err(|e| Error::from(ErrorKind::ConfigError(e))))?;
         let r2d2_config = Config::default();
 
         let manager = PostgresConnectionManager::new(url, TlsMode::None)
-            .map_err(|err| Error::from(ErrorKind::Postgres(err)))?;
+            .map_err(|err| Error::from(ErrorKind::PostgresError(err)))?;
         let pool = Pool::new(r2d2_config, manager)
-            .map_err(|err| Error::from(ErrorKind::PoolInitialisation(err)))?;
+            .map_err(|err| Error::from(ErrorKind::PoolInitialisationError(err)))?;
         Ok(DatabaseProvider {pool: Arc::new(pool)})
 
                 /*let r2d2_config = config.get_table("postgresql")

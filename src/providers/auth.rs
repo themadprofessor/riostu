@@ -52,7 +52,7 @@ impl AuthProvider {
                         discovery: Arc::new(Mutex::new(discovery))
                     })
 
-            ).map_err(|err| Error::from(ErrorKind::Google(err))
+            ).map_err(|err| Error::from(ErrorKind::GoogleError(err))
         )
     }
 }
@@ -61,24 +61,24 @@ impl BeforeMiddleware for AuthProvider {
     fn before(&self, req: &mut Request) -> IronResult<()> {
         if self.paths.contains(req.url.as_ref().path()) {
             self.discovery.lock()
-                .map_err(|err| Error::from(ErrorKind::Poison(format!("{}", err), "CachedDiscovery".to_string())))
+                .map_err(|err| Error::from(ErrorKind::PoisonError(format!("{}", err), "CachedDiscovery".to_string())))
                 .and_then(|mut cached_disc| cached_disc.discovery(&self.client)
-                    .map_err(|err| Error::from(ErrorKind::Google(err)))
+                    .map_err(|err| Error::from(ErrorKind::GoogleError(err)))
                     .and_then(|disc| self.keys.lock()
-                        .map_err(|err| Error::from(ErrorKind::Poison(format!("{}", err), "CachedKeys".to_string())))
+                        .map_err(|err| Error::from(ErrorKind::PoisonError(format!("{}", err), "CachedKeys".to_string())))
                         .and_then(|mut cached| cached.keys(&self.client, disc)
-                            .map_err(|err| Error::from(ErrorKind::Google(err)))
+                            .map_err(|err| Error::from(ErrorKind::GoogleError(err)))
                             .and_then(|keys| req.get::<Struct<UserData>>()
-                                .map_err(|err| Error::from(ErrorKind::RequestBody2(err)))
-                                .and_then(|data| data.ok_or_else(|| Error::from(ErrorKind::MissingRequest)))
+                                .map_err(|err| Error::from(ErrorKind::RequestBody2Error(err)))
+                                .and_then(|data| data.ok_or_else(|| Error::from(ErrorKind::MissingRequestError)))
                                 .and_then(|user_data| get_key(&user_data.jwt, keys)
                                     .and_then(|key| base64::decode(&key.n)
-                                        .map_err(ErrorKind::Base64)
+                                        .map_err(ErrorKind::Base64Error)
                                         .and_then(|secret| {
                                             let mut validation = Validation::default();
                                             validation.iss = Some("accounts.google.com".to_string());
                                             jwt::decode::<GoogleToken>(&user_data.jwt, &secret, &validation)
-                                                .map_err(ErrorKind::JWT)
+                                                .map_err(ErrorKind::JwtError)
                                         }).map(|_| ())
                                     ).map_err(Error::from)
                                 ).map_err(Error::from)
@@ -97,10 +97,10 @@ impl BeforeMiddleware for AuthProvider {
 
 fn get_key<'a>(token: &str, keys: &'a [Key]) -> ::std::result::Result<&'a Key, ErrorKind> {
     serde_json::from_str::<Header>(token.split('.').next().unwrap())
-        .map_err(ErrorKind::JSON)
-        .and_then(|head| head.kid.ok_or_else(|| ErrorKind::MissingKidGoogleToken))
+        .map_err(ErrorKind::JsonError)
+        .and_then(|head| head.kid.ok_or_else(|| ErrorKind::MissingKidGoogleTokenError))
         .and_then(|kid| keys.iter()
             .find(|key| key.kid == kid)
-            .ok_or_else(|| ErrorKind::NoValidKeyGoogle))
+            .ok_or_else(|| ErrorKind::NoValidKeyGoogleError))
 }
 

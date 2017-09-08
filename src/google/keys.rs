@@ -33,13 +33,13 @@ impl CachedKeys {
     pub fn new(client: &Client, discovery: &Discovery) -> Result<CachedKeys> {
         client.get(&discovery.jwks_uri)
             .send()
-            .map_err(ErrorKind::Hyper)
+            .map_err(ErrorKind::HyperError)
             .and_then(|mut response| {
                 let mut s = String::new();
                 response.read_to_string(&mut s)
-                    .map_err(ErrorKind::IO)
+                    .map_err(ErrorKind::IoError)
                     .and_then(|_| serde_json::from_str::<Keys>(&s)
-                        .map_err(ErrorKind::JSON))
+                        .map_err(ErrorKind::JsonError))
                     .map(|keys| CachedKeys {
                         keys: keys.keys,
                         expiry: Utc::now() +
@@ -55,7 +55,7 @@ impl CachedKeys {
     }
 
     pub fn from_cache<T: Read>(read: T) -> Result<CachedKeys> {
-        serde_json::from_reader(read).map_err(|err| ErrorKind::JSON(err).into())
+        serde_json::from_reader(read).map_err(|err| ErrorKind::JsonError(err).into())
     }
 
     pub fn refresh(&mut self, client: &Client, discovery: &Discovery) -> Result<()> {
