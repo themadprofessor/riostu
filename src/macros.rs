@@ -1,5 +1,8 @@
 #[macro_export]
 macro_rules! string_build {
+    () => {{
+        String::new()
+    }};
     ($($x:expr),+) => {{
         let mut len = 0;
         $(

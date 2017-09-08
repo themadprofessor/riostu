@@ -12,30 +12,30 @@ pub struct RequestHandler;
 
 impl NewRequest {
     fn new(map_res: QueryResult) -> Result<NewRequest> {
-        map_res.map_err(|err| Error::from(ErrorKind::RequestBody(err)))
-            .chain_err(|| ErrorKind::InternalServerError)
-            .and_then(|mut map: QueryMap| {
-                let user_id_res = map.remove("user_id")
-                    .ok_or_else(|| ErrorKind::MissingRequestData("user_id".to_string()))
-                    .and_then(|mut user_id| match user_id.len() {
-                        1 => Ok(user_id.remove(0)),
-                        _ => Err(ErrorKind::IncorrectCountRequestData("user_id".to_string(), 1))
-                    }).map_err(Error::from);
+        let mut map = map_res.map_err(|err| Error::from(ErrorKind::RequestBody(err)))
+            .chain_err(|| ErrorKind::InternalServerError)?;
 
-                let amount_res = map.remove("amount")
-                    .ok_or_else(|| ErrorKind::MissingRequestData("amount".to_string()))
-                    .and_then(|mut amount| match amount.len() {
-                        1 => Ok(amount.remove(0)),
-                        _ => Err(ErrorKind::IncorrectCountRequestData("amount".to_string(), 1))
-                    }).map_err(Error::from).and_then(|cur| build_currency(&cur));
+        let user_id = map.remove("user_id")
+            .ok_or_else(|| ErrorKind::MissingRequestData("user_id".to_string()))
+            .and_then(|mut user_id| match user_id.len() {
+                1 => Ok(user_id.remove(0)),
+                _ => Err(ErrorKind::IncorrectCountRequestData("user_id".to_string(), 1))
+            }).map_err(Error::from)
+            .chain_err(|| ErrorKind::InternalServerError)?;
 
-                user_id_res.and_then(|user_id| amount_res.and_then(|amount|
-                    Ok(NewRequest{
-                        user_id,
-                        amount,
-                    })
-                )).map_err(Error::from).chain_err(|| ErrorKind::BadRequest)
-            })
+        let amount = map.remove("amount")
+            .ok_or_else(|| ErrorKind::MissingRequestData("amount".to_string()))
+            .and_then(|mut amount| match amount.len() {
+                1 => Ok(amount.remove(0)),
+                _ => Err(ErrorKind::IncorrectCountRequestData("amount".to_string(), 1))
+            }).map_err(Error::from)
+            .and_then(|cur| build_currency(&cur))
+            .chain_err(|| ErrorKind::InternalServerError)?;
+
+        Ok(NewRequest{
+            user_id,
+            amount,
+        })
     }
 }
 

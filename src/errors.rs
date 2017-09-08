@@ -80,5 +80,10 @@ error_chain! {
             description("Read Write Lock was poisoned!")
             display("The Read Write Lock for {} was poisoned! {}", obj, msg)
         }
+
+        IdentityFileNotExistError(path: String) {
+            description("SSL identity file doesn't exist")
+            display("SSL identity file doesn't exist: {}", path)
+        }
     }
 }

@@ -81,8 +81,11 @@ fn build_auth(config: &Config, paths: HashSet<String>) -> Result<providers::Auth
 
 fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result<iron::Listening> {
     let ssl = build_ssl(config)?;
+    debug!(log, "Initialised SSL");
     let auth_provider = build_auth(config, paths)?;
+    debug!(log, "Initialised Authentication");
     let db_provider = providers::DatabaseProvider::new(config)?;
+    debug!(log, "Initialised Database");
 
     let mut mount = Mount::new();
     mount.mount("/", Static::new("web/"))
@@ -106,6 +109,10 @@ fn build_ssl(config: &Config) -> Result<NativeTlsServer> {
         .ok_or_else(|| ErrorKind::MissingConfigValueTable("identity".to_string(), "ssl".to_string()))
         .and_then(|v| v.clone().into_str().map_err(ErrorKind::Config))
         .map_err(Error::from)?;
+
+    if !std::path::Path::new(&identity).exists() {
+        bail!(ErrorKind::IdentityFileNotExistError(identity))
+    }
 
     let pass = ssl_table.get("pass")
         .ok_or_else(|| ErrorKind::MissingConfigValueTable("pass".to_string(), "ssl".to_string()))

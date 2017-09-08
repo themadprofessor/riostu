@@ -17,7 +17,7 @@ impl typemap::Key for DatabaseProvider {
 
 impl DatabaseProvider {
     pub fn new(config: &::config::Config) -> Result<DatabaseProvider> {
-        let postgres_table = config.get_table("postgres")
+        let postgres_table = config.get_table("postgresql")
             .map_err(|err| Error::from(ErrorKind::Config(err)))?;
         let url = postgres_table.get("url")
             .ok_or_else(|| Error::from(ErrorKind::MissingConfigValueTable("url".to_string(),

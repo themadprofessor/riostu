@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/openid-connect/openid-connect.iml" filepath="$PROJECT_DIR$/openid-connect/openid-connect.iml" />
       <module fileurl="file://$PROJECT_DIR$/riostu.iml" filepath="$PROJECT_DIR$/riostu.iml" />
-      <module fileurl="file://$PROJECT_DIR$/webfinger/webfinger.iml" filepath="$PROJECT_DIR$/webfinger/webfinger.iml" />
     </modules>
   </component>
 </project>
