@@ -7,16 +7,16 @@ use std::sync::Arc;
 
 use errors::*;
 
-pub struct DatabaseProvider {
+pub struct Database {
     pool: Arc<Pool<PostgresConnectionManager>>
 }
 
-impl typemap::Key for DatabaseProvider {
+impl typemap::Key for Database {
     type Value = Arc<Pool<PostgresConnectionManager>>;
 }
 
-impl DatabaseProvider {
-    pub fn new(config: &::config::Config) -> Result<DatabaseProvider> {
+impl Database {
+    pub fn new(config: &::config::Config) -> Result<Database> {
         let postgres_table = config.get_table("postgresql")
             .map_err(|err| Error::from(ErrorKind::ConfigError(err)))?;
         let url = postgres_table.get("url")
@@ -29,7 +29,7 @@ impl DatabaseProvider {
             .map_err(|err| Error::from(ErrorKind::PostgresError(err)))?;
         let pool = Pool::new(r2d2_config, manager)
             .map_err(|err| Error::from(ErrorKind::PoolInitialisationError(err)))?;
-        Ok(DatabaseProvider {pool: Arc::new(pool)})
+        Ok(Database {pool: Arc::new(pool)})
 
                 /*let r2d2_config = config.get_table("postgresql")
                     .and_then(|table| table.get("pool")
@@ -65,9 +65,9 @@ impl DatabaseProvider {
     }
 }
 
-impl BeforeMiddleware for DatabaseProvider {
+impl BeforeMiddleware for Database {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        req.extensions.insert::<DatabaseProvider>(self.pool.clone());
+        req.extensions.insert::<Database>(self.pool.clone());
         Ok(())
     }
 }

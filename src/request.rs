@@ -5,7 +5,7 @@ use iron::status;
 use urlencoded::{QueryResult, QueryMap, UrlEncodedBody};
 
 use errors::*;
-use providers::DatabaseProvider;
+use providers::Database;
 use models::NewRequest;
 
 pub struct RequestHandler;
@@ -46,7 +46,7 @@ impl Handler for RequestHandler {
         }
 
         NewRequest::new(req.get::<UrlEncodedBody>())
-            .and_then(|request| req.extensions.get::<DatabaseProvider>()
+            .and_then(|request| req.extensions.get::<Database>()
                 .ok_or_else(|| Error::from(ErrorKind::MissingDatabaseConnectionError))
                 .and_then(|con| con.get().map_err(|err| Error::from(ErrorKind::PoolTimeoutError(err))))
                 .chain_err(|| ErrorKind::InternalServerError)

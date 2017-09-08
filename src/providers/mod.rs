@@ -4,8 +4,8 @@ mod logging;
 mod monitoring;
 mod auth;
 
-pub use self::database::DatabaseProvider;
+pub use self::database::Database;
 pub use self::errorcapture::ErrorCapture;
-pub use self::logging::LogProvider;
-pub use self::monitoring::MonitoringProvider;
-pub use self::auth::AuthProvider;
+pub use self::logging::Log;
+pub use self::monitoring::Monitoring;
+pub use self::auth::Auth;

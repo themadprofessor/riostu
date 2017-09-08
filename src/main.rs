@@ -73,10 +73,10 @@ fn main() {
     }
 }
 
-fn build_auth(config: &Config, paths: HashSet<String>) -> Result<providers::AuthProvider> {
+fn build_auth(config: &Config, paths: HashSet<String>) -> Result<providers::Auth> {
     let client = NativeTlsClient::new().map_err(|err| Error::from(ErrorKind::ClientTlsError(err)))?;
     let client = Client::with_connector(HttpsConnector::new(client));
-    providers::AuthProvider::new(client, paths)
+    providers::Auth::new(client, paths)
 }
 
 fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result<iron::Listening> {
@@ -84,7 +84,7 @@ fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result
     debug!(log, "Initialised SSL");
     let auth_provider = build_auth(config, paths)?;
     debug!(log, "Initialised Authentication");
-    let db_provider = providers::DatabaseProvider::new(config)?;
+    let db_provider = providers::Database::new(config)?;
     debug!(log, "Initialised Database");
 
     let mut mount = Mount::new();
@@ -92,11 +92,11 @@ fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result
         .mount("/request", request::RequestHandler{})
         .mount("/login", login::LoginHandler::new());
     let mut chain = Chain::new(mount);
-    chain.link_before(providers::LogProvider::new(log.new(o!())))
-        .link_before(providers::MonitoringProvider {})
-//        .link_before(auth_provider)
+    chain.link_before(providers::Log::new(log.new(o!())))
+        .link_before(providers::Monitoring {})
+//        .link_before(auth_provider) TODO: Uncomment, change auth to return UUID to caller
         .link_before(db_provider);
-    chain.link_after(providers::MonitoringProvider {})
+    chain.link_after(providers::Monitoring {})
         .link_after(providers::ErrorCapture {});
     build_iron(config, chain, ssl)
 }

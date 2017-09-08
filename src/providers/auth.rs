@@ -14,7 +14,7 @@ use errors::*;
 use google::{CachedKeys, CachedDiscovery, Key};
 use models::User;
 
-pub struct AuthProvider {
+pub struct Auth {
     paths: HashSet<String>,
     keys: Arc<Mutex<CachedKeys>>,
     discovery: Arc<Mutex<CachedDiscovery>>,
@@ -40,12 +40,12 @@ struct UserData {
     jwt: String
 }
 
-impl AuthProvider {
-    pub fn new(client: Client, paths: HashSet<String>) -> Result<AuthProvider> {
+impl Auth {
+    pub fn new(client: Client, paths: HashSet<String>) -> Result<Auth> {
         CachedDiscovery::new(&client)
             .and_then(|mut discovery| discovery.discovery(&client)
                 .and_then(|disc| CachedKeys::new(&client, disc))
-                    .map(|keys| AuthProvider {
+                    .map(|keys| Auth {
                         client,
                         paths,
                         keys: Arc::new(Mutex::new(keys)),
@@ -57,7 +57,7 @@ impl AuthProvider {
     }
 }
 
-impl BeforeMiddleware for AuthProvider {
+impl BeforeMiddleware for Auth {
     fn before(&self, req: &mut Request) -> IronResult<()> {
         if self.paths.contains(req.url.as_ref().path()) {
             self.discovery.lock()

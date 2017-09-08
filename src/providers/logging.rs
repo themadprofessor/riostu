@@ -2,25 +2,25 @@ use iron::prelude::*;
 use iron::{BeforeMiddleware, typemap};
 use slog::Logger;
 
-impl typemap::Key for LogProvider {
+impl typemap::Key for Log {
     type Value = Logger;
 }
 
-pub struct LogProvider {
+pub struct Log {
     log: Logger
 }
 
-impl LogProvider {
-    pub fn new(log: Logger) -> LogProvider {
-        LogProvider {
+impl Log {
+    pub fn new(log: Logger) -> Log {
+        Log {
             log
         }
     }
 }
 
-impl BeforeMiddleware for LogProvider {
+impl BeforeMiddleware for Log {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        req.extensions.insert::<LogProvider>(self.log.new(o!("endpoint" => format!("{}", req.url))));
+        req.extensions.insert::<Log>(self.log.new(o!("endpoint" => format!("{}", req.url))));
         Ok(())
     }
 }

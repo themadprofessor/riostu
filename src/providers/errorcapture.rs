@@ -4,7 +4,7 @@ use std::error::Error;
 use iron::prelude::*;
 use iron::{AfterMiddleware, status};
 
-use providers::LogProvider;
+use providers::Log;
 use errors::*;
 
 pub struct ErrorCapture {
@@ -13,7 +13,7 @@ pub struct ErrorCapture {
 impl AfterMiddleware for ErrorCapture {
     fn catch(&self, req: &mut Request, err: IronError) -> IronResult<Response> {
         let info = err.error.cause().map(|e| format!("{}", e)).unwrap_or_else(|| format!("{}", err.error));
-        if let Some(log) = req.extensions.get::<LogProvider>() {
+        if let Some(log) = req.extensions.get::<Log>() {
             warn!(log, "Error during handling"; "url" => req.url.as_ref().as_str(), "desc" => err.description());
             trace!(log, "{:?}", err)
         }
