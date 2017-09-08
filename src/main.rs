@@ -94,7 +94,7 @@ fn start_server(log: &Logger, config: &Config, paths: HashSet<String>) -> Result
     let mut chain = Chain::new(mount);
     chain.link_before(providers::LogProvider::new(log.new(o!())))
         .link_before(providers::MonitoringProvider {})
-        .link_before(auth_provider)
+//        .link_before(auth_provider)
         .link_before(db_provider);
     chain.link_after(providers::MonitoringProvider {})
         .link_after(providers::ErrorCapture {});
